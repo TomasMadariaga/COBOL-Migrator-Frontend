@@ -1,0 +1,48 @@
+const INFO = {
+  GO_TO: { title: "GO TO detected", description: "Control flow must be reproduced exactly. Review the translated jumps." },
+  ALTER: { title: "ALTER detected", description: "ALTER rewrites GO TO targets at runtime and has no safe Python equivalent." },
+  COPY: { title: "COPY books not resolved", description: "Fields defined in COPY books are missing from the translation context." },
+  FILE_IO: { title: "File I/O detected", description: "Record layouts and file status handling are not modeled." },
+  EXEC_SQL_CICS: { title: "EXEC SQL / CICS", description: "These blocks cannot be translated without the target environment." },
+  CALL: { title: "CALL to external programs", description: "The called program and its parameters are unknown." },
+  STRING_OPS: { title: "STRING / UNSTRING / INSPECT", description: "Subtle semantics (pointers, tallying): verify manually." },
+  SORT_SEARCH: { title: "SORT / MERGE / SEARCH", description: "Verify these statements manually." },
+  REDEFINES: { title: "REDEFINES", description: "Two names share the same bytes; a dictionary cannot alias them." },
+  OCCURS_DEPENDING: { title: "OCCURS DEPENDING ON", description: "Variable-length table." },
+  EDITED_PIC: { title: "Edited PIC with unsupported symbols", description: "The picture has symbols the formatter does not support, so the program stops at the MOVE with NotImplementedError." },
+  EDITED_MOVE: { title: "Edited field not formatted", description: "A MOVE into a numeric-edited field does not use cobol_edit, so the output format will differ from COBOL." },
+  EDITED_PIC_MISMATCH: { title: "Wrong edit picture", description: "cobol_edit uses a different picture than the one declared for the field." },
+  CHUNK_MISSING: { title: "A part is missing a function", description: "The model did not write one of the functions requested for a part of the program." },
+  CHUNK_EXTRA: { title: "Unexpected function in a part", description: "The model wrote a function that was not requested for that part of the program." },
+  CHUNK_TOPLEVEL: { title: "Loose code in a part", description: "The model wrote code outside the requested functions (for example a second ws or an entry point)." },
+  CHUNKED: { title: "Translated in several parts", description: "The program was too large for a single request, so it was translated in several parts and assembled.", level: "info" },
+  RETRY_FAILED: { title: "Automatic correction could not run", description: "A problem was detected in the first attempt, but the correction could not be requested (usually the provider's per-minute token limit), so the first attempt is delivered as is. Check the other warnings." },
+  UNNEEDED_SIZE_ERROR: { title: "Unneeded ON SIZE ERROR handling", description: "A statement without ON SIZE ERROR was wrapped in the size-error pattern. Results match unless a value overflows its field, where COBOL would truncate it and this code would leave it unchanged." },
+  ALPHA_COMPARE: { title: "Alphanumeric comparison may be wrong", description: "A text field is compared with a literal of a different length. COBOL pads with spaces, so this comparison can be false when it should be true." },
+  PIC_MISMATCH: { title: "Wrong field size in a number format", description: "A cobol_store or cobol_display call uses digits, decimals or sign that differ from the field's PIC, so values or their display format will be wrong." },
+  NOT_TRANSLATED: { title: "Part of the program was not translated", description: "The Python stops with NotImplementedError where COBOL could not be translated faithfully." },
+  RENAMES: { title: "RENAMES (level 66)", description: "Not supported." },
+  LINKAGE: { title: "LINKAGE SECTION", description: "Parameters come from the caller and are not modeled." },
+  MULTIPLE_PROGRAMS: { title: "Several programs in one file", description: "Only a single program is supported." },
+  UNRESOLVED_PERFORM: { title: "PERFORM of an unknown paragraph", description: "A paragraph name was not found in the program." },
+  PARSER: { title: "Pre-processor warning", description: "The analysis step reported a problem; the translation has less context." },
+  FALLBACK_MODEL: { title: "Backup model used", description: "The primary model failed, so a different model produced this translation." },
+  SYNTAX_RETRY: { title: "Regenerated once", description: "The first attempt had problems (syntax or misuse of the runtime helpers) and was regenerated.", level: "info" },
+  SYNTAX_NOT_CHECKED: { title: "Output not verified", description: "Python is not available on the server to check the result.", level: "info" },
+  DISCARDED_RESULT: { title: "Unused helper result", description: "A runtime helper's return value is thrown away (for example a DISPLAY that prints nothing)." },
+  RAW_NUMERIC_PRINT: { title: "Numeric field printed raw", description: "A numeric field is printed without COBOL DISPLAY formatting (e.g. 30 instead of 030)." },
+  AUG_ASSIGN: { title: "+= on a COBOL field", description: "Skips COBOL truncation and overflow rules; it should use cobol_store." },
+  NO_WS: { title: "No ws dictionary", description: "The output does not declare the shared ws dictionary." },
+  NO_MAIN: { title: "No entry point", description: "The output has no __main__ block." },
+  FLOAT_USAGE: { title: "float values used", description: "Risk of rounding errors in monetary calculations." },
+};
+
+export function describeWarning(w) {
+  const info = INFO[w.code] || { title: w.code, description: "" };
+  return {
+    code: w.code,
+    level: w.level || info.level || "warning",
+    title: info.title,
+    description: w.message || info.description,
+  };
+}
